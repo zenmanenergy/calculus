@@ -1,24 +1,24 @@
 const problems = [
-	// 1–4 Related Rates
+	// 1
 	{
-		text: "A balloon’s radius increases at 2 cm/s. How fast is the volume increasing when the radius is 5 cm?",
+		text: "A spherical balloon is inflated so that its radius increases at 3 cm/s. How fast is the volume increasing when the radius is 6 cm?",
 		questions: [
 			{
-				prompt: "Which keyword(s) indicate a quantity changing over time?",
+				prompt: "What type of problem is this?",
 				type: "select",
-				options: ["per second","largest","tangent","approximate","limit"],
-				answer: "per second"
-			},
-			{
-				prompt: "Type of problem?",
-				type: "select",
-				options: ["Related Rates","Optimization","Motion (Kinematics)","Limit Evaluation","Linear Approximation"],
+				options: ["Related Rates","Optimization","Linear Approximation","Motion (Kinematics)","Limit Evaluation"],
 				answer: "Related Rates"
 			},
 			{
-				prompt: "What quantity are we solving for?",
+				prompt: "Which words in the problem helped you decide your answer?",
 				type: "select",
-				options: ["rate of volume change","maximum area","slope","limit value"],
+				options: ["increases at","largest","approximate","limit","horizontal"],
+				answer: "increases at"
+			},
+			{
+				prompt: "What quantity are we finding?",
+				type: "select",
+				options: ["rate of volume change","maximum area","velocity","limit value"],
 				answer: "rate of volume change"
 			},
 			{
@@ -28,55 +28,26 @@ const problems = [
 				answers: ["V = (4/3)πr³"]
 			}
 		],
-		explanation: "‘Per second’ shows a rate → Related Rates problem using the sphere volume formula."
+		explanation: "‘Increases at’ shows one variable changing over time → Related Rates."
 	},
+	// 2
 	{
-		text: "Water is poured into a cone so that height increases at 3 cm/s. How fast is volume increasing when h = 5 cm?",
+		text: "A ladder 12 ft long is sliding down a wall. The bottom slides away from the wall at 2 ft/s. How fast is the top sliding down when the bottom is 5 ft from the wall?",
 		questions: [
 			{
-				prompt: "Which keyword signals a changing rate?",
-				type: "select",
-				options: ["increases at","limit","maximum","horizontal"],
-				answer: "increases at"
-			},
-			{
-				prompt: "Type of problem?",
-				type: "select",
-				options: ["Related Rates","Optimization","Motion (Kinematics)","Linear Approximation","Limit Evaluation"],
-				answer: "Related Rates"
-			},
-			{
-				prompt: "Quantity being found?",
-				type: "select",
-				options: ["rate of volume change","surface area","velocity","limit value"],
-				answer: "rate of volume change"
-			},
-			{
-				prompt: "Which equation(s) apply?",
-				type: "checkbox",
-				options: ["V = (1/3)πr²h","A = lw","y = x²","s(t) = 4t² - 2t"],
-				answers: ["V = (1/3)πr²h"]
-			}
-		],
-		explanation: "‘Increases at’ shows a rate; use the cone-volume relation."
-	},
-	{
-		text: "A 10-ft ladder slides away from a wall at 1 ft/s. How fast is the top sliding down when the bottom is 6 ft out?",
-		questions: [
-			{
-				prompt: "Which phrase implies motion and change?",
-				type: "select",
-				options: ["slides away","largest","estimate","limit"],
-				answer: "slides away"
-			},
-			{
-				prompt: "Type of problem?",
+				prompt: "What type of problem is this?",
 				type: "select",
 				options: ["Related Rates","Optimization","Linear Approximation","Motion (Kinematics)","Limit Evaluation"],
 				answer: "Related Rates"
 			},
 			{
-				prompt: "What rate are we finding?",
+				prompt: "Which words in the problem helped you decide your answer?",
+				type: "select",
+				options: ["slides away","largest","approximate","limit","horizontal"],
+				answer: "slides away"
+			},
+			{
+				prompt: "What quantity are we finding?",
 				type: "select",
 				options: ["rate top slides down","maximum area","velocity","limit value"],
 				answer: "rate top slides down"
@@ -84,29 +55,61 @@ const problems = [
 			{
 				prompt: "Which equation(s) apply?",
 				type: "checkbox",
-				options: ["x² + y² = 100","A = lw","V = (4/3)πr³","y - y₁ = m(x - x₁)"],
-				answers: ["x² + y² = 100"]
+				options: ["x² + y² = 144","A = lw","V = (4/3)πr³","P = 2l + 2w"],
+				answers: ["x² + y² = 144"]
 			}
 		],
-		explanation: "Movement of ladder sides → Pythagorean relation; differentiate to find dy/dt."
+		explanation: "Movement on both x and y axes → Related Rates using Pythagorean theorem."
 	},
+	// 3
 	{
-		text: "A spherical snowball melts so that its radius decreases at 0.2 cm/min. How fast is its volume decreasing when r = 10 cm?",
+		text: "A cone is filled with water so that the height of the water increases at 4 cm/s. How fast is the volume increasing when the height is 10 cm?",
 		questions: [
 			{
-				prompt: "Which keyword indicates shrinking or negative rate?",
+				prompt: "What type of problem is this?",
 				type: "select",
-				options: ["decreases at","largest","approximate","limit"],
-				answer: "decreases at"
-			},
-			{
-				prompt: "Type of problem?",
-				type: "select",
-				options: ["Related Rates","Optimization","Motion (Kinematics)","Linear Approximation","Limit Evaluation"],
+				options: ["Related Rates","Optimization","Linear Approximation","Motion (Kinematics)","Limit Evaluation"],
 				answer: "Related Rates"
 			},
 			{
-				prompt: "Quantity being found?",
+				prompt: "Which words in the problem helped you decide your answer?",
+				type: "select",
+				options: ["increases at","largest","limit","approximate","horizontal"],
+				answer: "increases at"
+			},
+			{
+				prompt: "What quantity are we finding?",
+				type: "select",
+				options: ["rate of volume change","maximum height","velocity","limit value"],
+				answer: "rate of volume change"
+			},
+			{
+				prompt: "Which equation(s) apply?",
+				type: "checkbox",
+				options: ["V = (1/3)πr²h","A = πr²","P = 2l + 2w","y = mx + b"],
+				answers: ["V = (1/3)πr²h"]
+			}
+		],
+		explanation: "‘Increases at’ → derivative with respect to time for volume of a cone."
+	},
+	// 4
+	{
+		text: "A spherical snowball melts so that its radius decreases at 0.3 cm/min. How fast is its volume decreasing when the radius is 8 cm?",
+		questions: [
+			{
+				prompt: "What type of problem is this?",
+				type: "select",
+				options: ["Related Rates","Optimization","Linear Approximation","Motion (Kinematics)","Limit Evaluation"],
+				answer: "Related Rates"
+			},
+			{
+				prompt: "Which words in the problem helped you decide your answer?",
+				type: "select",
+				options: ["decreases at","largest","approximate","limit","horizontal"],
+				answer: "decreases at"
+			},
+			{
+				prompt: "What quantity are we finding?",
 				type: "select",
 				options: ["rate of volume change","maximum area","velocity","limit value"],
 				answer: "rate of volume change"
@@ -114,34 +117,33 @@ const problems = [
 			{
 				prompt: "Which equation(s) apply?",
 				type: "checkbox",
-				options: ["V = (4/3)πr³","A = 4πr²","y = mx + b","P = 2l + 2w"],
+				options: ["V = (4/3)πr³","A = 4πr²","y = mx + b","A = lw"],
 				answers: ["V = (4/3)πr³"]
 			}
 		],
-		explanation: "‘Decreases at’ means dV/dt < 0 → Related Rates with sphere volume."
+		explanation: "‘Decreases at’ indicates a shrinking rate → Related Rates with sphere volume."
 	},
-
-	// 5–8 Optimization
+	// 5
 	{
-		text: "Find dimensions of a rectangle with perimeter 40 that has the largest possible area.",
+		text: "Find the rectangle with perimeter 40 m that has the largest possible area.",
 		questions: [
 			{
-				prompt: "Which word signals extremum?",
-				type: "select",
-				options: ["largest","limit","horizontal","approximate"],
-				answer: "largest"
-			},
-			{
-				prompt: "Type of problem?",
+				prompt: "What type of problem is this?",
 				type: "select",
 				options: ["Optimization","Related Rates","Linear Approximation","Motion (Kinematics)","Limit Evaluation"],
 				answer: "Optimization"
 			},
 			{
-				prompt: "Quantity optimized?",
+				prompt: "Which words in the problem helped you decide your answer?",
 				type: "select",
-				options: ["area","volume","perimeter","slope"],
-				answer: "area"
+				options: ["largest","increases at","limit","approximate","horizontal"],
+				answer: "largest"
+			},
+			{
+				prompt: "What quantity are we finding?",
+				type: "select",
+				options: ["maximum area","rate of change","limit value","slope"],
+				answer: "maximum area"
 			},
 			{
 				prompt: "Which equation(s) apply?",
@@ -150,211 +152,121 @@ const problems = [
 				answers: ["A = lw","P = 2l + 2w = 40"]
 			}
 		],
-		explanation: "‘Largest area’ → maximize A = lw subject to P = 40."
+		explanation: "‘Largest area’ → Optimization using area and perimeter relations."
 	},
+	// 6
 	{
-		text: "A box with square base and open top must hold 32 000 cm³. Find dimensions requiring the least material.",
+		text: "A box with square base and open top must hold 500 cm³. Find the dimensions requiring the least material.",
 		questions: [
 			{
-				prompt: "Which keyword shows minimization?",
+				prompt: "What type of problem is this?",
 				type: "select",
-				options: ["least","largest","limit","approximate"],
+				options: ["Optimization","Related Rates","Linear Approximation","Motion (Kinematics)","Limit Evaluation"],
+				answer: "Optimization"
+			},
+			{
+				prompt: "Which words in the problem helped you decide your answer?",
+				type: "select",
+				options: ["least","limit","approximate","increases at","horizontal"],
 				answer: "least"
 			},
 			{
-				prompt: "Type of problem?",
+				prompt: "What quantity are we finding?",
+				type: "select",
+				options: ["minimum surface area","maximum volume","velocity","limit value"],
+				answer: "minimum surface area"
+			},
+			{
+				prompt: "Which equation(s) apply?",
+				type: "checkbox",
+				options: ["V = x²h = 500","A = x² + 4xh","A = lw","V = (4/3)πr³"],
+				answers: ["V = x²h = 500","A = x² + 4xh"]
+			}
+		],
+		explanation: "‘Least material’ → Optimization minimizing surface area."
+	},
+	// 7
+	{
+		text: "Find the point on y = x² + 1 that is closest to (0, 4).",
+		questions: [
+			{
+				prompt: "What type of problem is this?",
 				type: "select",
 				options: ["Optimization","Related Rates","Linear Approximation","Motion (Kinematics)","Limit Evaluation"],
 				answer: "Optimization"
 			},
 			{
-				prompt: "Quantity optimized?",
+				prompt: "Which words in the problem helped you decide your answer?",
 				type: "select",
-				options: ["surface area","volume","velocity","slope"],
-				answer: "surface area"
-			},
-			{
-				prompt: "Which equation(s) apply?",
-				type: "checkbox",
-				options: ["V = x²h = 32000","A = x² + 4xh","y = mx + b","V = (1/3)πr²h"],
-				answers: ["V = x²h = 32000","A = x² + 4xh"]
-			}
-		],
-		explanation: "‘Least material’ → minimize surface area for given volume."
-	},
-	{
-		text: "Find the point on y = x² + 1 closest to (0, 3).",
-		questions: [
-			{
-				prompt: "Which word implies distance minimization?",
-				type: "select",
-				options: ["closest","limit","approximate","fast"],
+				options: ["closest","limit","approximate","increases at","horizontal"],
 				answer: "closest"
 			},
 			{
-				prompt: "Type of problem?",
+				prompt: "What quantity are we finding?",
 				type: "select",
-				options: ["Optimization","Related Rates","Linear Approximation","Motion (Kinematics)","Limit Evaluation"],
-				answer: "Optimization"
-			},
-			{
-				prompt: "Quantity optimized?",
-				type: "select",
-				options: ["distance","velocity","volume","area"],
-				answer: "distance"
+				options: ["minimum distance","maximum area","velocity","limit value"],
+				answer: "minimum distance"
 			},
 			{
 				prompt: "Which equation(s) apply?",
 				type: "checkbox",
-				options: ["D² = (x−0)² + (y−3)²","y = x² + 1","A = lw","V = (4/3)πr³"],
-				answers: ["D² = (x−0)² + (y−3)²","y = x² + 1"]
+				options: ["D² = (x−0)² + (y−4)²","y = x² + 1","V = (1/3)πr²h","A = lw"],
+				answers: ["D² = (x−0)² + (y−4)²","y = x² + 1"]
 			}
 		],
-		explanation: "‘Closest’ → minimize distance from point to curve."
+		explanation: "‘Closest’ → Optimization minimizing distance."
 	},
-	{
-		text: "A farmer fences three sides of a rectangle along a river to enclose 600 m² with least fencing.",
-		questions: [
-			{
-				prompt: "Which phrase implies minimizing fencing?",
-				type: "select",
-				options: ["least fencing","limit","horizontal","approximate"],
-				answer: "least fencing"
-			},
-			{
-				prompt: "Type of problem?",
-				type: "select",
-				options: ["Optimization","Related Rates","Linear Approximation","Motion (Kinematics)","Limit Evaluation"],
-				answer: "Optimization"
-			},
-			{
-				prompt: "Quantity optimized?",
-				type: "select",
-				options: ["perimeter","area","velocity","volume"],
-				answer: "perimeter"
-			},
-			{
-				prompt: "Which equation(s) apply?",
-				type: "checkbox",
-				options: ["A = lw = 600","P = 2l + w","V = (4/3)πr³","A = πr²"],
-				answers: ["A = lw = 600","P = 2l + w"]
-			}
-		],
-		explanation: "‘Least fencing’ → minimize perimeter with area constraint."
-	},
-
-	// 9–11 Motion (Kinematics)
-	{
-		text: "A particle moves with position s(t) = 4t² − 2t. When is the particle at rest?",
-		questions: [
-			{
-				prompt: "Which keyword indicates zero velocity?",
-				type: "select",
-				options: ["at rest","largest","approximate","limit"],
-				answer: "at rest"
-			},
-			{
-				prompt: "Type of problem?",
-				type: "select",
-				options: ["Motion (Kinematics)","Optimization","Related Rates","Linear Approximation","Limit Evaluation"],
-				answer: "Motion (Kinematics)"
-			},
-			{
-				prompt: "What variable is set to zero?",
-				type: "select",
-				options: ["velocity","acceleration","area","limit"],
-				answer: "velocity"
-			},
-			{
-				prompt: "Which equation(s) apply?",
-				type: "checkbox",
-				options: ["v(t) = s'(t)","a(t) = v'(t)","V = (4/3)πr³","A = lw"],
-				answers: ["v(t) = s'(t)"]
-			}
-		],
-		explanation: "‘At rest’ → v(t)=0 where v(t)=s′(t)."
-	},
-	{
-		text: "If s(t)=t³ − 6t² + 9t, when is the particle speeding up?",
-		questions: [
-			{
-				prompt: "Which keyword refers to motion acceleration?",
-				type: "select",
-				options: ["speeding up","approximate","limit","largest"],
-				answer: "speeding up"
-			},
-			{
-				prompt: "Type of problem?",
-				type: "select",
-				options: ["Motion (Kinematics)","Optimization","Related Rates","Linear Approximation","Limit Evaluation"],
-				answer: "Motion (Kinematics)"
-			},
-			{
-				prompt: "When is an object speeding up?",
-				type: "select",
-				options: ["velocity and acceleration have same sign","velocity = 0","acceleration = 0","position = 0"],
-				answer: "velocity and acceleration have same sign"
-			},
-			{
-				prompt: "Which equation(s) apply?",
-				type: "checkbox",
-				options: ["v(t) = s'(t)","a(t) = v'(t)","A = lw","V = (4/3)πr³"],
-				answers: ["v(t) = s'(t)","a(t) = v'(t)"]
-			}
-		],
-		explanation: "Speeding up occurs when v and a share the same sign."
-	},
+	// 8
 	{
 		text: "A rock is thrown upward with velocity 20 m/s. How long until it reaches its highest point?",
 		questions: [
 			{
-				prompt: "Which phrase describes motion peak?",
+				prompt: "What type of problem is this?",
 				type: "select",
-				options: ["highest point","limit","largest","approximate"],
-				answer: "highest point"
-			},
-			{
-				prompt: "Type of problem?",
-				type: "select",
-				options: ["Motion (Kinematics)","Optimization","Related Rates","Linear Approximation","Limit Evaluation"],
+				options: ["Motion (Kinematics)","Related Rates","Optimization","Linear Approximation","Limit Evaluation"],
 				answer: "Motion (Kinematics)"
 			},
 			{
-				prompt: "Condition at the top?",
+				prompt: "Which words in the problem helped you decide your answer?",
 				type: "select",
-				options: ["velocity = 0","acceleration = 0","area = 0","limit exists"],
-				answer: "velocity = 0"
+				options: ["highest point","largest","limit","approximate","horizontal"],
+				answer: "highest point"
+			},
+			{
+				prompt: "What quantity are we finding?",
+				type: "select",
+				options: ["time when velocity = 0","maximum height","limit value","slope"],
+				answer: "time when velocity = 0"
 			},
 			{
 				prompt: "Which equation(s) apply?",
 				type: "checkbox",
-				options: ["v(t)=s'(t)","a(t)=v'(t)","s(t)=v₀t−½gt²","A=lw"],
-				answers: ["v(t)=s'(t)","a(t)=v'(t)","s(t)=v₀t−½gt²"]
+				options: ["v(t)=v₀−gt","s(t)=v₀t−½gt²","A = lw","V = (4/3)πr³"],
+				answers: ["v(t)=v₀−gt","s(t)=v₀t−½gt²"]
 			}
 		],
-		explanation: "At the top of flight, v = 0."
+		explanation: "‘Highest point’ → v = 0, a motion kinematics idea."
 	},
-
-	// 12–14 Derivative / Tangent
+	// 9
 	{
-		text: "Find the slope of the tangent line to y = x² + 3x at x = 1.",
+		text: "Find the slope of the tangent line to y = x² + 3x at x = 2.",
 		questions: [
 			{
-				prompt: "Which keyword shows slope context?",
-				type: "select",
-				options: ["tangent","limit","largest","approximate"],
-				answer: "tangent"
-			},
-			{
-				prompt: "Type of problem?",
+				prompt: "What type of problem is this?",
 				type: "select",
 				options: ["Derivative / Tangent Line","Optimization","Related Rates","Linear Approximation","Limit Evaluation"],
 				answer: "Derivative / Tangent Line"
 			},
 			{
-				prompt: "Quantity found?",
+				prompt: "Which words in the problem helped you decide your answer?",
 				type: "select",
-				options: ["slope","area","velocity","limit value"],
+				options: ["tangent line","limit","approximate","horizontal","largest"],
+				answer: "tangent line"
+			},
+			{
+				prompt: "What quantity are we finding?",
+				type: "select",
+				options: ["slope","velocity","rate of change","limit value"],
 				answer: "slope"
 			},
 			{
@@ -364,250 +276,347 @@ const problems = [
 				answers: ["y' = 2x + 3","y − y₁ = m(x − x₁)"]
 			}
 		],
-		explanation: "‘Tangent’ → find f′(x) and use point-slope form."
+		explanation: "‘Tangent line’ → Derivative gives slope at a point."
 	},
+	// 10
 	{
 		text: "Find the point where the tangent to y = x³ is horizontal.",
 		questions: [
 			{
-				prompt: "Which keyword shows flat slope?",
-				type: "select",
-				options: ["horizontal","largest","limit","approximate"],
-				answer: "horizontal"
-			},
-			{
-				prompt: "Type of problem?",
+				prompt: "What type of problem is this?",
 				type: "select",
 				options: ["Derivative / Critical Point","Optimization","Related Rates","Linear Approximation","Limit Evaluation"],
 				answer: "Derivative / Critical Point"
 			},
 			{
-				prompt: "Condition for horizontal tangent?",
+				prompt: "Which words in the problem helped you decide your answer?",
 				type: "select",
-				options: ["f'(x)=0","v(t)=0","a(t)=0","limit exists"],
-				answer: "f'(x)=0"
+				options: ["horizontal","largest","approximate","limit","increases at"],
+				answer: "horizontal"
+			},
+			{
+				prompt: "What quantity are we finding?",
+				type: "select",
+				options: ["where f'(x)=0","maximum","limit","velocity"],
+				answer: "where f'(x)=0"
 			},
 			{
 				prompt: "Which equation(s) apply?",
 				type: "checkbox",
-				options: ["f'(x)=3x²","y − y₁ = m(x − x₁)","A = lw","x² + y² = 100"],
+				options: ["f'(x)=3x²","y − y₁ = m(x − x₁)","A = lw","P = 2l + 2w"],
 				answers: ["f'(x)=3x²"]
 			}
 		],
-		explanation: "‘Horizontal’ → set derivative equal to zero."
+		explanation: "‘Horizontal tangent’ → derivative equals zero."
 	},
+	// 11
 	{
-		text: "Find the equation of the tangent line to y = sin(x) at x = π/4.",
+		text: "Find limit as x→0 of sin(x)/x.",
 		questions: [
 			{
-				prompt: "Keyword implying tangent?",
+				prompt: "What type of problem is this?",
 				type: "select",
-				options: ["tangent","limit","approximate","largest"],
-				answer: "tangent"
+				options: ["Limit Evaluation","Optimization","Related Rates","Linear Approximation","Motion (Kinematics)"],
+				answer: "Limit Evaluation"
 			},
 			{
-				prompt: "Type of problem?",
+				prompt: "Which words in the problem helped you decide your answer?",
+				type: "select",
+				options: ["limit","largest","approximate","horizontal","increases at"],
+				answer: "limit"
+			},
+			{
+				prompt: "What quantity are we finding?",
+				type: "select",
+				options: ["limit value","maximum area","velocity","slope"],
+				answer: "limit value"
+			},
+			{
+				prompt: "Which equation(s) apply?",
+				type: "checkbox",
+				options: ["lim x→0 sin(x)/x = 1","A = lw","V = (4/3)πr³","y = mx + b"],
+				answers: ["lim x→0 sin(x)/x = 1"]
+			}
+		],
+		explanation: "‘Limit as x→0’ → Evaluate known trig limit."
+	},
+	// 12
+	{
+		text: "Estimate √(9.2) using linear approximation.",
+		questions: [
+			{
+				prompt: "What type of problem is this?",
+				type: "select",
+				options: ["Linear Approximation","Optimization","Related Rates","Motion (Kinematics)","Limit Evaluation"],
+				answer: "Linear Approximation"
+			},
+			{
+				prompt: "Which words in the problem helped you decide your answer?",
+				type: "select",
+				options: ["estimate","approximate","limit","largest","increases at"],
+				answer: "estimate"
+			},
+			{
+				prompt: "What quantity are we finding?",
+				type: "select",
+				options: ["approximate value","rate of change","maximum area","velocity"],
+				answer: "approximate value"
+			},
+			{
+				prompt: "Which equation(s) apply?",
+				type: "checkbox",
+				options: ["dy = f'(x)dx","y − y₁ = m(x − x₁)","A = lw","V = (4/3)πr³"],
+				answers: ["dy = f'(x)dx"]
+			}
+		],
+		explanation: "‘Estimate’ → Linear Approximation or Differentials."
+	},
+	// 13
+	{
+		text: "A car’s velocity increases from 10 m/s to 30 m/s over 4 seconds. Find its average acceleration.",
+		questions: [
+			{
+				prompt: "What type of problem is this?",
+				type: "select",
+				options: ["Motion (Kinematics)","Related Rates","Optimization","Linear Approximation","Limit Evaluation"],
+				answer: "Motion (Kinematics)"
+			},
+			{
+				prompt: "Which words in the problem helped you decide your answer?",
+				type: "select",
+				options: ["velocity increases","largest","limit","approximate","horizontal"],
+				answer: "velocity increases"
+			},
+			{
+				prompt: "What quantity are we finding?",
+				type: "select",
+				options: ["average acceleration","maximum velocity","limit value","slope"],
+				answer: "average acceleration"
+			},
+			{
+				prompt: "Which equation(s) apply?",
+				type: "checkbox",
+				options: ["a = Δv/Δt","v = v₀ + at","A = lw","V = (4/3)πr³"],
+				answers: ["a = Δv/Δt","v = v₀ + at"]
+			}
+		],
+		explanation: "‘Velocity increases’ → derivative or rate-of-change concept from motion."
+	},
+	// 14
+	{
+		text: "Find the slope of the curve y = 3x² − 4x + 1 at x = −1.",
+		questions: [
+			{
+				prompt: "What type of problem is this?",
 				type: "select",
 				options: ["Derivative / Tangent Line","Optimization","Related Rates","Linear Approximation","Limit Evaluation"],
 				answer: "Derivative / Tangent Line"
 			},
 			{
-				prompt: "What must be computed first?",
+				prompt: "Which words in the problem helped you decide your answer?",
 				type: "select",
-				options: ["derivative","limit","velocity","surface area"],
+				options: ["slope","limit","largest","approximate","increases at"],
+				answer: "slope"
+			},
+			{
+				prompt: "What quantity are we finding?",
+				type: "select",
+				options: ["derivative","maximum","limit","velocity"],
 				answer: "derivative"
 			},
 			{
 				prompt: "Which equation(s) apply?",
 				type: "checkbox",
-				options: ["y' = cos(x)","y − y₁ = m(x − x₁)","A = lw","P = 2l + 2w"],
-				answers: ["y' = cos(x)","y − y₁ = m(x − x₁)"]
+				options: ["y' = 6x − 4","y − y₁ = m(x − x₁)","A = lw","V = (4/3)πr³"],
+				answers: ["y' = 6x − 4"]
 			}
 		],
-		explanation: "Find derivative cos(x), then use tangent line formula."
+		explanation: "‘Slope’ → Derivative of the function at a specific x."
 	},
-
-	// 15–16 Linear Approximation
+	// 15
 	{
-		text: "Estimate √(4.1) using linear approximation.",
+		text: "Find the value of lim(x→2) (x²−4)/(x−2).",
 		questions: [
 			{
-				prompt: "Which word shows estimation?",
+				prompt: "What type of problem is this?",
 				type: "select",
-				options: ["estimate","limit","largest","velocity"],
-				answer: "estimate"
+				options: ["Limit Evaluation","Optimization","Related Rates","Linear Approximation","Motion (Kinematics)"],
+				answer: "Limit Evaluation"
 			},
 			{
-				prompt: "Type of problem?",
+				prompt: "Which words in the problem helped you decide your answer?",
+				type: "select",
+				options: ["lim(x→2)","largest","approximate","increases at","horizontal"],
+				answer: "lim(x→2)"
+			},
+			{
+				prompt: "What quantity are we finding?",
+				type: "select",
+				options: ["limit value","rate","maximum area","velocity"],
+				answer: "limit value"
+			},
+			{
+				prompt: "Which equation(s) apply?",
+				type: "checkbox",
+				options: ["factor numerator (x−2)(x+2)","A = lw","V = (4/3)πr³","y = mx + b"],
+				answers: ["factor numerator (x−2)(x+2)"]
+			}
+		],
+		explanation: "‘lim(x→2)’ → find limit using algebraic simplification."
+	},
+	// 16
+	{
+		text: "Find the tangent line to y = cos(x) at x = π/3.",
+		questions: [
+			{
+				prompt: "What type of problem is this?",
+				type: "select",
+				options: ["Derivative / Tangent Line","Optimization","Related Rates","Linear Approximation","Limit Evaluation"],
+				answer: "Derivative / Tangent Line"
+			},
+			{
+				prompt: "Which words in the problem helped you decide your answer?",
+				type: "select",
+				options: ["tangent line","limit","approximate","largest","increases at"],
+				answer: "tangent line"
+			},
+			{
+				prompt: "What quantity are we finding?",
+				type: "select",
+				options: ["slope and line equation","maximum area","limit value","velocity"],
+				answer: "slope and line equation"
+			},
+			{
+				prompt: "Which equation(s) apply?",
+				type: "checkbox",
+				options: ["y' = −sin(x)","y − y₁ = m(x − x₁)","A = lw","V = (4/3)πr³"],
+				answers: ["y' = −sin(x)","y − y₁ = m(x − x₁)"]
+			}
+		],
+		explanation: "‘Tangent line’ → find derivative and use point-slope form."
+	},
+	// 17
+	{
+		text: "A particle moves so that s(t)=t³−6t²+9t. When is the particle at rest?",
+		questions: [
+			{
+				prompt: "What type of problem is this?",
+				type: "select",
+				options: ["Motion (Kinematics)","Optimization","Related Rates","Linear Approximation","Limit Evaluation"],
+				answer: "Motion (Kinematics)"
+			},
+			{
+				prompt: "Which words in the problem helped you decide your answer?",
+				type: "select",
+				options: ["at rest","limit","largest","approximate","increases at"],
+				answer: "at rest"
+			},
+			{
+				prompt: "What quantity are we finding?",
+				type: "select",
+				options: ["when velocity = 0","maximum position","limit value","slope"],
+				answer: "when velocity = 0"
+			},
+			{
+				prompt: "Which equation(s) apply?",
+				type: "checkbox",
+				options: ["v(t)=s'(t)","a(t)=v'(t)","A = lw","V = (4/3)πr³"],
+				answers: ["v(t)=s'(t)"]
+			}
+		],
+		explanation: "‘At rest’ → velocity = 0 → Motion Kinematics."
+	},
+	// 18
+	{
+		text: "Approximate (1.01)⁵ using differentials.",
+		questions: [
+			{
+				prompt: "What type of problem is this?",
 				type: "select",
 				options: ["Linear Approximation","Optimization","Related Rates","Motion (Kinematics)","Limit Evaluation"],
 				answer: "Linear Approximation"
 			},
 			{
-				prompt: "Quantity found?",
+				prompt: "Which words in the problem helped you decide your answer?",
 				type: "select",
-				options: ["approximation","rate","limit","maximum"],
-				answer: "approximation"
-			},
-			{
-				prompt: "Which equation(s) apply?",
-				type: "checkbox",
-				options: ["dy = f'(x)dx","y − y₁ = m(x − x₁)","V = (4/3)πr³","A = lw"],
-				answers: ["dy = f'(x)dx"]
-			}
-		],
-		explanation: "‘Estimate’ → use dy = f′(x)dx for small changes."
-	},
-	{
-		text: "Approximate (1.02)⁵ using differentials.",
-		questions: [
-			{
-				prompt: "Which keyword means small change?",
-				type: "select",
-				options: ["approximate","limit","largest","per second"],
+				options: ["approximate","limit","largest","horizontal","increases at"],
 				answer: "approximate"
 			},
 			{
-				prompt: "Type of problem?",
+				prompt: "What quantity are we finding?",
 				type: "select",
-				options: ["Linear Approximation","Optimization","Related Rates","Motion (Kinematics)","Limit Evaluation"],
-				answer: "Linear Approximation"
-			},
-			{
-				prompt: "What rule is applied?",
-				type: "select",
-				options: ["power rule","chain rule","quotient rule","limit rule"],
-				answer: "power rule"
+				options: ["approximation using derivative","limit value","maximum area","velocity"],
+				answer: "approximation using derivative"
 			},
 			{
 				prompt: "Which equation(s) apply?",
 				type: "checkbox",
-				options: ["dy = f'(x)dx","f'(x)=5x⁴","A = lw","V = (4/3)πr³"],
-				answers: ["dy = f'(x)dx","f'(x)=5x⁴"]
+				options: ["dy=f'(x)dx","f'(x)=5x⁴","A = lw","V = (4/3)πr³"],
+				answers: ["dy=f'(x)dx","f'(x)=5x⁴"]
 			}
 		],
-		explanation: "Use power rule in differential form."
+		explanation: "‘Approximate’ → Linear Approximation via differentials."
 	},
-
-	// 17–20 Limit Evaluation
+	// 19
 	{
-		text: "Find the limit as x→3 of (2x² − 18)/(x − 3).",
+		text: "Find limit as x→1 of (x²−1)/(x−1).",
 		questions: [
 			{
-				prompt: "Which word identifies limit evaluation?",
+				prompt: "What type of problem is this?",
 				type: "select",
-				options: ["limit","rate","largest","tangent"],
+				options: ["Limit Evaluation","Optimization","Related Rates","Linear Approximation","Motion (Kinematics)"],
+				answer: "Limit Evaluation"
+			},
+			{
+				prompt: "Which words in the problem helped you decide your answer?",
+				type: "select",
+				options: ["limit","approximate","largest","horizontal","increases at"],
 				answer: "limit"
 			},
 			{
-				prompt: "Type of problem?",
+				prompt: "What quantity are we finding?",
 				type: "select",
-				options: ["Limit Evaluation","Optimization","Related Rates","Linear Approximation","Motion (Kinematics)"],
-				answer: "Limit Evaluation"
-			},
-			{
-				prompt: "Simplification method?",
-				type: "select",
-				options: ["factor and cancel","power rule","chain rule","integration"],
-				answer: "factor and cancel"
+				options: ["limit value","rate","maximum area","velocity"],
+				answer: "limit value"
 			},
 			{
 				prompt: "Which equation(s) apply?",
 				type: "checkbox",
-				options: ["factor numerator","apply L'Hôpital's Rule","A = lw","V = (4/3)πr³"],
-				answers: ["factor numerator"]
+				options: ["x²−1=(x−1)(x+1)","A = lw","V = (4/3)πr³","y = mx + b"],
+				answers: ["x²−1=(x−1)(x+1)"]
 			}
 		],
-		explanation: "‘Limit as x→3’ → factor numerator to remove discontinuity."
+		explanation: "‘Limit as x→1’ → factor and cancel common term."
 	},
+	// 20
 	{
-		text: "As x approaches 0, find limit of sin(x)/x.",
+		text: "Find the point where y = x³ − 3x² + 2x has a local minimum.",
 		questions: [
 			{
-				prompt: "Which phrase shows approaching behavior?",
+				prompt: "What type of problem is this?",
 				type: "select",
-				options: ["as x approaches","largest","approximate","fast"],
-				answer: "as x approaches"
+				options: ["Optimization","Related Rates","Linear Approximation","Motion (Kinematics)","Limit Evaluation"],
+				answer: "Optimization"
 			},
 			{
-				prompt: "Type of problem?",
+				prompt: "Which words in the problem helped you decide your answer?",
 				type: "select",
-				options: ["Limit Evaluation","Optimization","Related Rates","Linear Approximation","Motion (Kinematics)"],
-				answer: "Limit Evaluation"
+				options: ["local minimum","largest","limit","approximate","horizontal"],
+				answer: "local minimum"
 			},
 			{
-				prompt: "Known result?",
+				prompt: "What quantity are we finding?",
 				type: "select",
-				options: ["1","0","∞","does not exist"],
-				answer: "1"
-			},
-			{
-				prompt: "Which equation(s) apply?",
-				type: "checkbox",
-				options: ["limit sin(x)/x = 1","A = lw","V = (4/3)πr³","P = 2l + 2w"],
-				answers: ["limit sin(x)/x = 1"]
-			}
-		],
-		explanation: "Fundamental trig limit → sin(x)/x = 1 as x→0."
-	},
-	{
-		text: "Find limit of (x² − 1)/(x − 1) as x→1.",
-		questions: [
-			{
-				prompt: "Which word identifies limit evaluation?",
-				type: "select",
-				options: ["limit","largest","approximate","per second"],
-				answer: "limit"
-			},
-			{
-				prompt: "Type of problem?",
-				type: "select",
-				options: ["Limit Evaluation","Optimization","Related Rates","Linear Approximation","Motion (Kinematics)"],
-				answer: "Limit Evaluation"
-			},
-			{
-				prompt: "Simplification method?",
-				type: "select",
-				options: ["factor numerator","chain rule","derivative","integration"],
-				answer: "factor numerator"
+				options: ["x-value where f'(x)=0 and f''(x)>0","rate of change","limit value","velocity"],
+				answer: "x-value where f'(x)=0 and f''(x)>0"
 			},
 			{
 				prompt: "Which equation(s) apply?",
 				type: "checkbox",
-				options: ["x² − 1 = (x − 1)(x + 1)","A = lw","V = (4/3)πr³","dy = f'(x)dx"],
-				answers: ["x² − 1 = (x − 1)(x + 1)"]
+				options: ["f'(x)=3x²−6x+2","f''(x)=6x−6","A = lw","V = (4/3)πr³"],
+				answers: ["f'(x)=3x²−6x+2","f''(x)=6x−6"]
 			}
 		],
-		explanation: "Factor numerator and cancel common term."
-	},
-	{
-		text: "Determine if limit of (x² − 9)/(x − 3) exists as x→3.",
-		questions: [
-			{
-				prompt: "Which keyword identifies limit?",
-				type: "select",
-				options: ["limit","largest","fastest","approximate"],
-				answer: "limit"
-			},
-			{
-				prompt: "Type of problem?",
-				type: "select",
-				options: ["Limit Evaluation","Optimization","Related Rates","Linear Approximation","Motion (Kinematics)"],
-				answer: "Limit Evaluation"
-			},
-			{
-				prompt: "Possible issue?",
-				type: "select",
-				options: ["division by zero","negative slope","missing variable","increasing area"],
-				answer: "division by zero"
-			},
-			{
-				prompt: "Which equation(s) apply?",
-				type: "checkbox",
-				options: ["x² − 9 = (x − 3)(x + 3)","A = lw","dy = f'(x)dx","V = (1/3)πr²h"],
-				answers: ["x² − 9 = (x − 3)(x + 3)"]
-			}
-		],
-		explanation: "At x=3, denominator = 0 → removable discontinuity after factoring."
+		explanation: "‘Local minimum’ → Optimization using first and second derivatives."
 	}
 ];
