@@ -16,7 +16,7 @@
 			border-radius: 8px;
 			margin-bottom: 20px;
 		}
-		select, input[type=text] {
+		select {
 			font-size: 1em;
 			margin: 5px 0;
 			padding: 5px;
@@ -56,28 +56,6 @@
 	<script>
 	let current = 0;
 
-	// --- Smart text comparison for typed answers ---
-	function isCloseMatch(user, correct) {
-		user = user.toLowerCase().trim();
-		correct = correct.toLowerCase().trim();
-
-		// exact match
-		if (user === correct) return true;
-
-		// if user contains the correct answer
-		if (user.includes(correct)) return true;
-
-		// plural/singular tolerance
-		if (user.endsWith("s") && user.slice(0, -1) === correct) return true;
-		if (correct.endsWith("s") && correct.slice(0, -1) === user) return true;
-
-		// remove common filler words
-		const cleaned = user.replace(/(find|maximize|maximizing|minimize|minimizing|solve|rate of|the|a|an|is|to|for)/g, "").trim();
-		if (cleaned.includes(correct)) return true;
-
-		return false;
-	}
-
 	function loadProblem() {
 		const p = problems[current];
 		document.getElementById("problemBox").innerHTML =
@@ -86,13 +64,17 @@
 		let html = "";
 		p.questions.forEach((q, i) => {
 			html += `<div><label><b>${q.prompt}</b></label><br>`;
+
 			if (q.type === "select") {
 				html += `<select id="q${i}">`;
 				html += `<option value="">-- choose --</option>`;
 				q.options.forEach(opt => html += `<option value="${opt}">${opt}</option>`);
 				html += `</select>`;
-			} else if (q.type === "text") {
-				html += `<input type="text" id="q${i}" placeholder="type answer...">`;
+			}
+			else if (q.type === "checkbox") {
+				q.options.forEach(opt => {
+					html += `<label><input type="checkbox" name="q${i}" value="${opt}"> ${opt}</label><br>`;
+				});
 			}
 			html += `</div>`;
 		});
@@ -106,21 +88,28 @@
 		let output = "";
 
 		p.questions.forEach((q, i) => {
-			const user = document.getElementById(`q${i}`).value.trim();
+			let correct = false;
+			let user = "";
 
-			let correct;
 			if (q.type === "select") {
-				// dropdowns require exact match
+				user = document.getElementById(`q${i}`).value.trim();
 				correct = user.toLowerCase() === q.answer.toLowerCase();
-			} else {
-				// text inputs use fuzzy comparison
-				correct = isCloseMatch(user, q.answer);
+			} 
+			else if (q.type === "checkbox") {
+				const boxes = document.querySelectorAll(`input[name="q${i}"]:checked`);
+				user = Array.from(boxes).map(b => b.value);
+				const correctAnswers = q.answers.map(a => a.toLowerCase());
+				const userAnswers = user.map(a => a.toLowerCase());
+				correct =
+					correctAnswers.length === userAnswers.length &&
+					correctAnswers.every(a => userAnswers.includes(a));
 			}
 
 			if (correct) {
 				output += `<div class="feedback" style="color:green;">Q${i+1}: Correct!</div>`;
 			} else {
-				output += `<div class="feedback" style="color:red;">Q${i+1}: Incorrect (You said "${user}", correct is "${q.answer}")</div>`;
+				const display = Array.isArray(user) ? user.join(", ") : user;
+				output += `<div class="feedback" style="color:red;">Q${i+1}: Incorrect (You said "${display}", correct is "${Array.isArray(q.answers)? q.answers.join(", ") : q.answer}")</div>`;
 			}
 		});
 
