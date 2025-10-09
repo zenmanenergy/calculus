@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Calculus I Keyword Trainer</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			max-width: 800px;
+			margin: 40px auto;
+			line-height: 1.6;
+		}
+		#problemBox {
+			background: #f0f4ff;
+			padding: 15px;
+			border-radius: 8px;
+			margin-bottom: 20px;
+		}
+		select, input[type=text] {
+			font-size: 1em;
+			margin: 5px 0;
+			padding: 5px;
+			width: 100%;
+			box-sizing: border-box;
+		}
+		button {
+			margin-top: 10px;
+			padding: 8px 14px;
+			cursor: pointer;
+		}
+		.feedback {
+			margin-top: 10px;
+			font-weight: bold;
+		}
+		.explanation {
+			background: #f9f9f9;
+			border-left: 4px solid #ccc;
+			padding: 10px;
+			margin-top: 10px;
+		}
+	</style>
+</head>
+<body>
+
+	<h1>Calculus I Word Problem Keyword Trainer</h1>
+
+	<div id="problemBox"></div>
+	<div id="questionsBox"></div>
+	<button id="submitBtn">Check Answers</button>
+	<div id="feedback"></div>
+	<div id="nextContainer" style="margin-top:20px; display:none;">
+		<button id="nextBtn">Next Problem</button>
+	</div>
+
+	<script src="questions.js"></script>
+	<script>
+	let current = 0;
+
+	// --- Smart text comparison for typed answers ---
+	function isCloseMatch(user, correct) {
+		user = user.toLowerCase().trim();
+		correct = correct.toLowerCase().trim();
+
+		// exact match
+		if (user === correct) return true;
+
+		// if user contains the correct answer
+		if (user.includes(correct)) return true;
+
+		// plural/singular tolerance
+		if (user.endsWith("s") && user.slice(0, -1) === correct) return true;
+		if (correct.endsWith("s") && correct.slice(0, -1) === user) return true;
+
+		// remove common filler words
+		const cleaned = user.replace(/(find|maximize|maximizing|minimize|minimizing|solve|rate of|the|a|an|is|to|for)/g, "").trim();
+		if (cleaned.includes(correct)) return true;
+
+		return false;
+	}
+
+	function loadProblem() {
+		const p = problems[current];
+		document.getElementById("problemBox").innerHTML =
+			`<b>Problem ${current+1} of ${problems.length}:</b><br>${p.text}`;
+		
+		let html = "";
+		p.questions.forEach((q, i) => {
+			html += `<div><label><b>${q.prompt}</b></label><br>`;
+			if (q.type === "select") {
+				html += `<select id="q${i}">`;
+				html += `<option value="">-- choose --</option>`;
+				q.options.forEach(opt => html += `<option value="${opt}">${opt}</option>`);
+				html += `</select>`;
+			} else if (q.type === "text") {
+				html += `<input type="text" id="q${i}" placeholder="type answer...">`;
+			}
+			html += `</div>`;
+		});
+		document.getElementById("questionsBox").innerHTML = html;
+		document.getElementById("feedback").innerHTML = "";
+		document.getElementById("nextContainer").style.display = "none";
+	}
+
+	document.getElementById("submitBtn").addEventListener("click", () => {
+		const p = problems[current];
+		let output = "";
+
+		p.questions.forEach((q, i) => {
+			const user = document.getElementById(`q${i}`).value.trim();
+
+			let correct;
+			if (q.type === "select") {
+				// dropdowns require exact match
+				correct = user.toLowerCase() === q.answer.toLowerCase();
+			} else {
+				// text inputs use fuzzy comparison
+				correct = isCloseMatch(user, q.answer);
+			}
+
+			if (correct) {
+				output += `<div class="feedback" style="color:green;">Q${i+1}: Correct!</div>`;
+			} else {
+				output += `<div class="feedback" style="color:red;">Q${i+1}: Incorrect (You said "${user}", correct is "${q.answer}")</div>`;
+			}
+		});
+
+		output += `<div class="explanation">${p.explanation}</div>`;
+		document.getElementById("feedback").innerHTML = output;
+		document.getElementById("nextContainer").style.display = "block";
+	});
+
+	document.getElementById("nextBtn").addEventListener("click", () => {
+		current++;
+		if (current >= problems.length) {
+			document.getElementById("problemBox").innerHTML = "<b>All problems complete!</b>";
+			document.getElementById("questionsBox").innerHTML = "";
+			document.getElementById("feedback").innerHTML =
+				"<p>You’ve finished this practice set. Replace <code>questions.js</code> with a new packet for more practice.</p>";
+			document.getElementById("nextContainer").style.display = "none";
+			return;
+		}
+		loadProblem();
+	});
+
+	loadProblem();
+	</script>
+</body>
+</html>
