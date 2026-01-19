@@ -419,8 +419,19 @@
 		}
 		
 		function parseFactor(latex, pos) {
+			// Handle unary minus
+			let negate = false;
+			if (pos < latex.length && latex[pos] === '-') {
+				negate = true;
+				pos++;
+			}
+			
 			let base = parsePrimary(latex, pos);
 			pos = base.pos;
+			
+			if (negate) {
+				base.value = base.value.mul(Radical.of(-1));
+			}
 			
 			if (pos < latex.length && latex[pos] === '^') {
 				pos++;
