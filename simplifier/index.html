@@ -134,16 +134,20 @@
 
 			try {
 				const parsedInput = parseLatex(latex);
+				console.log("Parsed input:", JSON.stringify(parsedInput.coeffs));
 				const inputDecimal = radicalToDecimal(parsedInput);
+				console.log("Input decimal:", inputDecimal);
 				document.getElementById("inputDecimal").textContent = '= ' + inputDecimal.toFixed(10);
 				
 				// Evaluate symbolically and get both the Radical object and LaTeX string
 				const result = evaluateSymbolicFull(latex);
+				console.log("Result object:", JSON.stringify(result.radical.coeffs));
 				console.log("Result LaTeX:", result.latex);
 				katex.render(result.latex, document.getElementById("outputRender"), { throwOnError: false });
 				
 				// Compute decimal of the Radical object directly
 				const outputDecimal = radicalToDecimal(result.radical);
+				console.log("Output decimal:", outputDecimal);
 				document.getElementById("outputDecimal").textContent = '= ' + outputDecimal.toFixed(10);
 			} catch(e) {
 				console.error('Error:', e);
@@ -428,12 +432,24 @@
 			let left = parseFactor(latex, pos);
 			pos = left.pos;
 			
-			while (pos < latex.length && (latex[pos] === '*' || latex.substr(pos, 5) === '\\cdot')) {
-				if (latex[pos] === '\\') pos += 5;
-				else pos++;
-				const right = parseFactor(latex, pos);
-				pos = right.pos;
-				left.value = left.value.mul(right.value);
+			while (pos < latex.length) {
+				// Check for explicit multiplication operators
+				if (latex[pos] === '*' || latex.substr(pos, 5) === '\\cdot') {
+					if (latex[pos] === '\\') pos += 5;
+					else pos++;
+					const right = parseFactor(latex, pos);
+					pos = right.pos;
+					left.value = left.value.mul(right.value);
+				}
+				// Check for implicit multiplication (next char is \ or ( or digit)
+				else if (pos < latex.length && (latex[pos] === '\\' || latex[pos] === '(' || /\d/.test(latex[pos]))) {
+					const right = parseFactor(latex, pos);
+					pos = right.pos;
+					left.value = left.value.mul(right.value);
+				}
+				else {
+					break;
+				}
 			}
 			
 			return { value: left.value, pos };
