@@ -2,32 +2,516 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>Steve's Simplifier Calculator</title>
-	<script src="https://cdn.jsdelivr.net/npm/mathjs@11/lib/browser/math.js"></script>
+	<title>Exact Simplifier</title>
+
+	<link rel="stylesheet"
+		href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+	<link rel="stylesheet"
+		href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.css">
+	<script
+		src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+	<script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.js"></script>
+
+	<style>
+		body {
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+			background: #ffffff;
+			padding: 40px 20px;
+		}
+
+		.container {
+			max-width: 700px;
+			margin: 0 auto;
+		}
+
+		h2 {
+			font-size: 28px;
+			font-weight: 600;
+			color: #1f2937;
+			margin: 0 0 40px 0;
+		}
+
+		button {
+			padding: 12px 24px;
+			font-size: 14px;
+			font-weight: 500;
+			background: #2563eb;
+			color: white;
+			border: none;
+			border-radius: 4px;
+			cursor: pointer;
+			transition: background-color 0.2s;
+		}
+
+		button:hover {
+			background: #1d4ed8;
+		}
+
+		button:active {
+			background: #1e40af;
+		}
+
+		.label {
+			font-size: 11px;
+			font-weight: 700;
+			color: #9ca3af;
+			margin-bottom: 12px;
+			text-transform: uppercase;
+			letter-spacing: 0.8px;
+		}
+
+		.section {
+			margin-bottom: 32px;
+		}
+
+		.input-container {
+			margin-bottom: 32px;
+		}
+
+		#output {
+			background: #f3f4f6;
+			padding: 20px;
+			border-radius: 4px;
+			font-family: 'Courier New', monospace;
+			font-size: 14px;
+			color: #1f2937;
+		}
+	</style>
 </head>
+
 <body>
 
-	<h3>Steve's Equation Simplifier</h3>
+<div class="container">
+	<h2>Steve's Exact Equation Simplifier</h2>
 
-	<input id="expr" size="60"
-		value="(sqrt(3)/3) * ((2*6^5/2)/5 - (4*6^3)/2)">
-	<button onclick="simplifyExpr()">Simplify</button>
+	<div class="section">
+		<div class="label">Input</div>
+		<div class="input-container">
+			<span id="input" class="math-input">\frac{\sqrt{3}}{3}\cdot\frac{2\cdot 6^{5/2}}{5}-4\cdot 6^{3/2}</span>
+		</div>
+	</div>
 
-	<pre id="output"></pre>
+	<button onclick="simplify()" style="margin-top: 20px;">Simplify</button>
+
+	<div class="section" style="margin-top: 32px;">
+		<div class="label">Exact Result</div>
+		<div id="outputRender" class="math-display"></div>
+	</div>
+</div>
 
 	<script>
-		const math = mathjs.create(mathjs.all, {
-			number: "Fraction"	// force exact arithmetic
+		var MQ;
+		var mathField;
+
+		$(function() {
+			setTimeout(function() {
+				try {
+					MQ = MathQuill.getInterface(2);
+					var inputEl = document.getElementById('input');
+					if (inputEl) {
+						mathField = MQ.MathField(inputEl);
+					}
+				} catch(e) {
+					console.error('Error initializing MathQuill:', e);
+				}
+			}, 100);
 		});
 
-		function simplifyExpr() {
-			const input = document.getElementById("expr").value;
+		function simplify() {
+			const latex = mathField ? mathField.latex() : '';
+			
+			// DEBUG: Log what we're parsing
+			console.log("Input LaTeX:", latex);
 
-			const parsed = math.parse(input);
-			const simplified = math.simplify(parsed);
+			try {
+				const result = evaluateSymbolic(latex);
+				console.log("Result LaTeX:", result);
+				katex.render(result, document.getElementById("outputRender"), { throwOnError: false });
+			} catch(e) {
+				console.error('Error:', e);
+				document.getElementById("outputRender").textContent = 'Error: ' + e.message;
+			}
+		}
 
-			document.getElementById("output").textContent =
-				simplified.toString();
+		function gcd(a, b) {
+			a = Math.abs(a);
+			b = Math.abs(b);
+			while (b !== 0) {
+				let temp = b;
+				b = a % b;
+				a = temp;
+			}
+			return a;
+		}
+
+		// ========== EXACT ARITHMETIC SYSTEM ==========
+		// Rational: exact fractions (numerator/denominator)
+		class Rational {
+			constructor(num, den = 1) {
+				if (den === 0) throw new Error('Division by zero');
+				const g = gcd(Math.abs(num), Math.abs(den));
+				this.num = num / g;
+				this.den = den / g;
+				if (this.den < 0) {
+					this.num = -this.num;
+					this.den = -this.den;
+				}
+			}
+			
+			add(r) {
+				if (!(r instanceof Rational)) r = new Rational(r);
+				return new Rational(this.num * r.den + r.num * this.den, this.den * r.den);
+			}
+			
+			sub(r) {
+				if (!(r instanceof Rational)) r = new Rational(r);
+				return new Rational(this.num * r.den - r.num * this.den, this.den * r.den);
+			}
+			
+			mul(r) {
+				if (!(r instanceof Rational)) r = new Rational(r);
+				return new Rational(this.num * r.num, this.den * r.den);
+			}
+			
+			div(r) {
+				if (!(r instanceof Rational)) r = new Rational(r);
+				return new Rational(this.num * r.den, this.den * r.num);
+			}
+			
+			toString() {
+				if (this.den === 1) return this.num.toString();
+				return this.num + '/' + this.den;
+			}
+		}
+		
+		// Radical: exact form a₀ + a₁√2 + a₂√3 + a₃√5 + ...
+		// Stored as a map: { radicand -> Rational coefficient }
+		class Radical {
+			constructor(coeffs = {}) {
+				this.coeffs = {};
+				for (let k in coeffs) {
+					if (coeffs[k].num !== 0) {
+						this.coeffs[k] = coeffs[k];
+					}
+				}
+			}
+			
+			static of(n) {
+				if (typeof n === 'number') n = new Rational(n);
+				const r = new Radical();
+				r.coeffs[1] = n instanceof Rational ? n : new Rational(n);
+				return r;
+			}
+			
+			add(r) {
+				const result = new Radical(this.coeffs);
+				for (let k in r.coeffs) {
+					result.coeffs[k] = (result.coeffs[k] || new Rational(0)).add(r.coeffs[k]);
+					if (result.coeffs[k].num === 0) delete result.coeffs[k];
+				}
+				return result;
+			}
+			
+			sub(r) {
+				const result = new Radical(this.coeffs);
+				for (let k in r.coeffs) {
+					result.coeffs[k] = (result.coeffs[k] || new Rational(0)).sub(r.coeffs[k]);
+					if (result.coeffs[k].num === 0) delete result.coeffs[k];
+				}
+				return result;
+			}
+			
+			mul(r) {
+				if (!(r instanceof Radical)) r = Radical.of(r);
+				const result = new Radical();
+				
+				for (let k1 in this.coeffs) {
+					for (let k2 in r.coeffs) {
+						const radicand_and_coeff = multiplyRadicands(parseInt(k1), parseInt(k2));
+						const radicand = radicand_and_coeff.radicand;
+						const outer_coeff = radicand_and_coeff.coeff;
+						
+						const coeff = this.coeffs[k1].mul(r.coeffs[k2]).mul(outer_coeff);
+						result.coeffs[radicand] = (result.coeffs[radicand] || new Rational(0)).add(coeff);
+						if (result.coeffs[radicand].num === 0) delete result.coeffs[radicand];
+					}
+				}
+				return result;
+			}
+			
+			div(r) {
+				if (!(r instanceof Radical)) r = Radical.of(r);
+				
+				// Rationalize: multiply by conjugate of denominator
+				// For now, only handle single-radicand denominators
+				const denom_keys = Object.keys(r.coeffs).map(x => parseInt(x)).sort();
+				
+				if (denom_keys.length === 1 && denom_keys[0] === 1) {
+					// Denominator is just a rational number
+					const denom_rational = r.coeffs[1];
+					const result = new Radical();
+					for (let k in this.coeffs) {
+						result.coeffs[k] = this.coeffs[k].div(denom_rational);
+					}
+					return result;
+				}
+				
+				if (denom_keys.length === 2 && denom_keys[0] === 1) {
+					// Denominator like a + b√n, conjugate is a - b√n
+					const radical_key = denom_keys[1];
+					const a = r.coeffs[1];
+					const b = r.coeffs[radical_key];
+					
+					// Multiply numerator and denominator by conjugate
+					const conj = new Radical();
+					conj.coeffs[1] = a;
+					conj.coeffs[radical_key] = b.mul(new Rational(-1));
+					
+					const new_num = this.mul(conj);
+					const new_den = r.mul(conj);
+					
+					// new_den should now be rational
+					const den_coeff = new_den.coeffs[1];
+					const result = new Radical();
+					for (let k in new_num.coeffs) {
+						result.coeffs[k] = new_num.coeffs[k].div(den_coeff);
+					}
+					return result;
+				}
+				
+				throw new Error('Cannot divide: complex denominator');
+			}
+			
+			pow(n) {
+				if (n === 0) return Radical.of(1);
+				if (n === 1) return new Radical(this.coeffs);
+				if (n < 0) return Radical.of(1).div(this.pow(-n));
+				
+				let result = Radical.of(1);
+				for (let i = 0; i < n; i++) {
+					result = result.mul(this);
+				}
+				return result;
+			}
+			
+			toLatex() {
+				const keys = Object.keys(this.coeffs).map(k => parseInt(k)).sort((a, b) => a - b);
+				if (keys.length === 0) return '0';
+				
+				let parts = [];
+				for (let k of keys) {
+					const c = this.coeffs[k];
+					const isNeg = c.num < 0;
+					const absNum = Math.abs(c.num);
+					const cStr = c.den === 1 ? absNum.toString() : '\\frac{' + absNum + '}{' + c.den + '}';
+					
+					if (k === 1) {
+						parts.push(isNeg ? '-' + cStr : cStr);
+					} else {
+						const radical = k === 2 ? '\\sqrt{2}' : k === 3 ? '\\sqrt{3}' : k === 5 ? '\\sqrt{5}' : '\\sqrt{' + k + '}';
+						if (absNum === 1 && c.den === 1) {
+							parts.push(isNeg ? '-' + radical : radical);
+						} else {
+							parts.push((isNeg ? '-' : '') + cStr + radical);
+						}
+					}
+				}
+				
+				let result = parts[0];
+				for (let i = 1; i < parts.length; i++) {
+					if (parts[i][0] === '-') {
+						result += parts[i];
+					} else {
+						result += '+' + parts[i];
+					}
+				}
+				return result;
+			}
+		}
+		
+		function multiplyRadicands(a, b) {
+			// √a * √b = √(ab), then simplify
+			// Returns { radicand: simplified_radicand, coeff: extracted_perfect_square }
+			// So √a * √b = coeff * √radicand
+			let prod = a * b;
+			let simplified = 1;
+			for (let i = 2; i * i <= prod; i++) {
+				while (prod % (i * i) === 0) {
+					simplified *= i;
+					prod /= i * i;
+				}
+			}
+			// Now prod = inner radicand (after simplification), simplified = coefficient
+			return { radicand: prod, coeff: new Rational(simplified) };
+		}
+		
+		function parseLatex(latex) {
+			latex = latex.replace(/\s+/g, '');
+			return parseExpression(latex, 0).value;
+		}
+		
+		function parseExpression(latex, pos) {
+			let left = parseTerm(latex, pos);
+			pos = left.pos;
+			
+			while (pos < latex.length && (latex[pos] === '+' || latex[pos] === '-')) {
+				const op = latex[pos];
+				pos++;
+				const right = parseTerm(latex, pos);
+				pos = right.pos;
+				left.value = op === '+' ? left.value.add(right.value) : left.value.sub(right.value);
+			}
+			
+			return { value: left.value, pos };
+		}
+		
+		function parseTerm(latex, pos) {
+			let left = parseFactor(latex, pos);
+			pos = left.pos;
+			
+			while (pos < latex.length && (latex[pos] === '*' || latex.substr(pos, 5) === '\\cdot')) {
+				if (latex[pos] === '\\') pos += 5;
+				else pos++;
+				const right = parseFactor(latex, pos);
+				pos = right.pos;
+				left.value = left.value.mul(right.value);
+			}
+			
+			return { value: left.value, pos };
+		}
+		
+		function parseFactor(latex, pos) {
+			let base = parsePrimary(latex, pos);
+			pos = base.pos;
+			
+			if (pos < latex.length && latex[pos] === '^') {
+				pos++;
+				let exp = '';
+				if (latex[pos] === '{') {
+					pos++;
+					let depth = 1;
+					while (depth > 0 && pos < latex.length) {
+						if (latex[pos] === '{') depth++;
+						else if (latex[pos] === '}') depth--;
+						if (depth > 0) exp += latex[pos];
+						pos++;
+					}
+				} else {
+					exp = latex[pos];
+					pos++;
+				}
+				
+				// Parse exponent
+				if (exp.includes('/')) {
+					const [num, den] = exp.split('/').map(x => parseInt(x));
+					if (den === 2) {
+						base.value = sqrtRadical(base.value);
+						if (num !== 1) base.value = base.value.pow(num);
+					} else {
+						throw new Error('Fractional exponents other than 1/2 not supported');
+					}
+				} else {
+					const n = parseInt(exp);
+					base.value = base.value.pow(n);
+				}
+			}
+			
+			return { value: base.value, pos };
+		}
+		
+		function parsePrimary(latex, pos) {
+			if (pos < latex.length && latex[pos] === '\\') {
+				if (latex.substr(pos, 5) === '\\frac') {
+					let depth = 0, endPos = pos + 5;
+					let numPart = '';
+					// Find {numerator}
+					endPos++;
+					depth = 1;
+					while (depth > 0) {
+						numPart += latex[endPos];
+						if (latex[endPos] === '{') depth++;
+						else if (latex[endPos] === '}') depth--;
+						endPos++;
+					}
+					numPart = numPart.slice(0, -1);
+					
+					let denPart = '';
+					endPos++;
+					depth = 1;
+					while (depth > 0) {
+						denPart += latex[endPos];
+						if (latex[endPos] === '{') depth++;
+						else if (latex[endPos] === '}') depth--;
+						endPos++;
+					}
+					denPart = denPart.slice(0, -1);
+					
+					const num = parseExpression(numPart, 0).value;
+					const den = parseExpression(denPart, 0).value;
+					return { value: num.div(den), pos: endPos };
+				} else if (latex.substr(pos, 5) === '\\sqrt') {
+					let depth = 0, endPos = pos + 6;
+					let inner = '';
+					depth = 1;
+					while (depth > 0) {
+						inner += latex[endPos];
+						if (latex[endPos] === '{') depth++;
+						else if (latex[endPos] === '}') depth--;
+						endPos++;
+					}
+					inner = inner.slice(0, -1);
+					const rad = parseExpression(inner, 0).value;
+					return { value: sqrtRadical(rad), pos: endPos };
+				}
+			}
+			
+			if (pos < latex.length && latex[pos] === '(') {
+				const expr = parseExpression(latex, pos + 1);
+				return { value: expr.value, pos: expr.pos + 1 };
+			}
+			
+			const m = /^\d+/.exec(latex.substr(pos));
+			if (m) {
+				return { value: Radical.of(new Rational(parseInt(m[0]))), pos: pos + m[0].length };
+			}
+			
+			throw new Error('Cannot parse at: ' + latex.substr(pos, 20));
+		}
+		
+		function sqrtRadical(r) {
+			// √(a + b√c + ...) is complex; for simple integers:
+			if (Object.keys(r.coeffs).length === 1 && r.coeffs[1]) {
+				const n = r.coeffs[1].num;
+				const d = r.coeffs[1].den;
+				if (d !== 1) throw new Error('Cannot take square root of non-integer');
+				
+				if (n < 0) throw new Error('Cannot take square root of negative');
+				
+				// √n: factor out perfect squares
+				let simplified = 1;
+				let under = n;
+				for (let i = 2; i * i <= under; i++) {
+					while (under % (i * i) === 0) {
+						simplified *= i;
+						under /= i * i;
+					}
+				}
+				
+				const result = new Radical();
+				result.coeffs[under] = new Rational(simplified);
+				return result;
+			}
+			throw new Error('Cannot take square root of complex radical');
+		}
+		
+		function evaluateSymbolic(latex) {
+			try {
+				const result = parseLatex(latex);
+				return result.toLatex();
+			} catch(e) {
+				throw new Error(e.message);
+			}
 		}
 	</script>
 
