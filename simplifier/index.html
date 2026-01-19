@@ -77,6 +77,13 @@
 			font-size: 14px;
 			color: #1f2937;
 		}
+
+		.decimal-value {
+			color: #9ca3af;
+			font-size: 12px;
+			margin-top: 8px;
+			font-family: 'Courier New', monospace;
+		}
 	</style>
 </head>
 
@@ -90,6 +97,7 @@
 		<div class="input-container">
 			<span id="input" class="math-input">\frac{\sqrt{3}}{3}\cdot\frac{2\cdot 6^{5/2}}{5}-4\cdot 6^{3/2}</span>
 		</div>
+		<div class="decimal-value" id="inputDecimal"></div>
 	</div>
 
 	<button onclick="simplify()" style="margin-top: 20px;">Simplify</button>
@@ -97,6 +105,7 @@
 	<div class="section" style="margin-top: 32px;">
 		<div class="label">Exact Result</div>
 		<div id="outputRender" class="math-display"></div>
+		<div class="decimal-value" id="outputDecimal"></div>
 	</div>
 </div>
 
@@ -121,17 +130,44 @@
 		function simplify() {
 			const latex = mathField ? mathField.latex() : '';
 			
-			// DEBUG: Log what we're parsing
 			console.log("Input LaTeX:", latex);
 
 			try {
-				const result = evaluateSymbolic(latex);
-				console.log("Result LaTeX:", result);
-				katex.render(result, document.getElementById("outputRender"), { throwOnError: false });
+				const parsedInput = parseLatex(latex);
+				const inputDecimal = radicalToDecimal(parsedInput);
+				document.getElementById("inputDecimal").textContent = '= ' + inputDecimal.toFixed(10);
+				
+				// Evaluate symbolically and get both the Radical object and LaTeX string
+				const result = evaluateSymbolicFull(latex);
+				console.log("Result LaTeX:", result.latex);
+				katex.render(result.latex, document.getElementById("outputRender"), { throwOnError: false });
+				
+				// Compute decimal of the Radical object directly
+				const outputDecimal = radicalToDecimal(result.radical);
+				document.getElementById("outputDecimal").textContent = '= ' + outputDecimal.toFixed(10);
 			} catch(e) {
 				console.error('Error:', e);
 				document.getElementById("outputRender").textContent = 'Error: ' + e.message;
+				document.getElementById("inputDecimal").textContent = '';
+				document.getElementById("outputDecimal").textContent = '';
 			}
+		}
+		
+		function evaluateSymbolicFull(latex) {
+			try {
+				const radical = parseLatex(latex);
+				return {
+					radical: radical,
+					latex: radical.toLatex()
+				};
+			} catch(e) {
+				throw new Error(e.message);
+			}
+		}
+		
+		function evaluateSymbolic(latex) {
+			const result = evaluateSymbolicFull(latex);
+			return result.latex;
 		}
 
 		function gcd(a, b) {
@@ -287,6 +323,7 @@
 				if (n === 0) return Radical.of(1);
 				if (n === 1) return new Radical(this.coeffs);
 				if (n < 0) return Radical.of(1).div(this.pow(-n));
+				if (n > 10) throw new Error('Exponent too large (max 10)');
 				
 				let result = Radical.of(1);
 				for (let i = 0; i < n; i++) {
@@ -505,13 +542,18 @@
 			throw new Error('Cannot take square root of complex radical');
 		}
 		
-		function evaluateSymbolic(latex) {
-			try {
-				const result = parseLatex(latex);
-				return result.toLatex();
-			} catch(e) {
-				throw new Error(e.message);
+		function radicalToDecimal(radical) {
+			let sum = 0;
+			for (let k in radical.coeffs) {
+				const coeff = radical.coeffs[k];
+				const decimalCoeff = coeff.num / coeff.den;
+				if (k === '1') {
+					sum += decimalCoeff;
+				} else {
+					sum += decimalCoeff * Math.sqrt(parseInt(k));
+				}
 			}
+			return sum;
 		}
 	</script>
 

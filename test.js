@@ -207,8 +207,9 @@ const four = Radical.of(4);
 const part2 = four.mul(sqrt6_pow3_again);
 console.log("4 * (√6)^3 =", part2.toString());
 
-// TEST 9: FINAL RESULT
-console.log("\n=== TEST 9: FINAL RESULT ===");
-const result = part1.sub(part2);
-console.log("Final:", result.toString());
-console.log("Expected: 72/5√2 - 24√6");
+// TEST 10: Large power
+console.log("\n=== TEST 10: 152^12 ===");
+const base = Radical.of(152);
+const power12 = base.pow(12);
+console.log("152^12 =", power12.toString());
+
