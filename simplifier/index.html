@@ -488,7 +488,22 @@
 				}
 				
 				// Parse exponent
-				if (exp.includes('/')) {
+				if (exp.includes('\\frac')) {
+					// Handle \frac{num}{den} format
+					const fracMatch = exp.match(/\\frac\{(\d+)\}\{(\d+)\}/);
+					if (fracMatch) {
+						const num = parseInt(fracMatch[1]);
+						const den = parseInt(fracMatch[2]);
+						if (den === 2) {
+							base.value = sqrtRadical(base.value);
+							if (num !== 1) base.value = base.value.pow(num);
+						} else {
+							throw new Error('Fractional exponents other than 1/2 not supported');
+						}
+					} else {
+						throw new Error('Cannot parse fractional exponent: ' + exp);
+					}
+				} else if (exp.includes('/')) {
 					const [num, den] = exp.split('/').map(x => parseInt(x));
 					if (den === 2) {
 						base.value = sqrtRadical(base.value);
@@ -507,6 +522,34 @@
 		
 		function parsePrimary(latex, pos) {
 			if (pos < latex.length && latex[pos] === '\\') {
+				// Handle \left( ... \right)
+				if (latex.substr(pos, 5) === '\\left') {
+					pos += 5;
+					if (pos < latex.length && latex[pos] === '(') {
+						pos++; // skip the (
+						// Find matching \right)
+						let depth = 1;
+						let exprStart = pos;
+						while (depth > 0 && pos < latex.length) {
+							if (latex.substr(pos, 6) === '\\left(') {
+								depth++;
+								pos += 6;
+							} else if (latex.substr(pos, 6) === '\\right') {
+								depth--;
+								if (depth === 0) break;
+								pos += 6;
+							} else {
+								pos++;
+							}
+						}
+						const exprStr = latex.substring(exprStart, pos);
+						if (latex.substr(pos, 6) === '\\right') pos += 6;
+						if (pos < latex.length && latex[pos] === ')') pos++;
+						const expr = parseExpression(exprStr, 0).value;
+						return { value: expr, pos };
+					}
+				}
+				
 				if (latex.substr(pos, 5) === '\\frac') {
 					let depth = 0, endPos = pos + 5;
 					let numPart = '';
