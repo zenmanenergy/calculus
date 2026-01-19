@@ -280,7 +280,6 @@
 				if (!(r instanceof Radical)) r = Radical.of(r);
 				
 				// Rationalize: multiply by conjugate of denominator
-				// For now, only handle single-radicand denominators
 				const denom_keys = Object.keys(r.coeffs).map(x => parseInt(x)).sort();
 				
 				if (denom_keys.length === 1 && denom_keys[0] === 1) {
@@ -289,6 +288,28 @@
 					const result = new Radical();
 					for (let k in this.coeffs) {
 						result.coeffs[k] = this.coeffs[k].div(denom_rational);
+					}
+					return result;
+				}
+				
+				if (denom_keys.length === 1 && denom_keys[0] !== 1) {
+					// Denominator is just a radical like √n with no integer part
+					// Conjugate of √n is √n (same), so multiply by √n
+					const radical_key = denom_keys[0];
+					const coeff = r.coeffs[radical_key];
+					
+					// Multiply numerator and denominator by √n
+					const sqrtn = new Radical();
+					sqrtn.coeffs[radical_key] = new Rational(1);
+					
+					const new_num = this.mul(sqrtn);
+					const new_den = r.mul(sqrtn);
+					
+					// new_den should now be rational (√n * √n = n)
+					const den_coeff = new_den.coeffs[1];
+					const result = new Radical();
+					for (let k in new_num.coeffs) {
+						result.coeffs[k] = new_num.coeffs[k].div(den_coeff);
 					}
 					return result;
 				}
