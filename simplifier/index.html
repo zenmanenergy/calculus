@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Steve's Simplifier Calculator</title>
+	<script src="https://cdn.jsdelivr.net/npm/mathjs@11/lib/browser/math.js"></script>
+</head>
+<body>
+
+	<h3>Steve's Equation Simplifier</h3>
+
+	<input id="expr" size="60"
+		value="(sqrt(3)/3) * ((2*6^5/2)/5 - (4*6^3)/2)">
+	<button onclick="simplifyExpr()">Simplify</button>
+
+	<pre id="output"></pre>
+
+	<script>
+		const math = mathjs.create(mathjs.all, {
+			number: "Fraction"	// force exact arithmetic
+		});
+
+		function simplifyExpr() {
+			const input = document.getElementById("expr").value;
+
+			const parsed = math.parse(input);
+			const simplified = math.simplify(parsed);
+
+			document.getElementById("output").textContent =
+				simplified.toString();
+		}
+	</script>
+
+</body>
+</html>
