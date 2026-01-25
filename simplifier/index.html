@@ -134,19 +134,30 @@
 
 			try {
 				const parsedInput = parseLatex(latex);
-				console.log("Parsed input:", JSON.stringify(parsedInput.coeffs));
-				const inputDecimal = radicalToDecimal(parsedInput);
+				console.log("Parsed input:", parsedInput);
+				
+				let inputDecimal = 0;
+				if (parsedInput instanceof AlgebraicExpr) {
+					inputDecimal = algebraicToDecimal(parsedInput);
+				} else if (parsedInput.coeffs) {
+					inputDecimal = radicalToDecimal(parsedInput);
+				}
 				console.log("Input decimal:", inputDecimal);
 				document.getElementById("inputDecimal").textContent = '= ' + inputDecimal.toFixed(10);
 				
-				// Evaluate symbolically and get both the Radical object and LaTeX string
+				// Evaluate symbolically and get both the AlgebraicExpr object and LaTeX string
 				const result = evaluateSymbolicFull(latex);
-				console.log("Result object:", JSON.stringify(result.radical.coeffs));
+				console.log("Result object:", result);
 				console.log("Result LaTeX:", result.latex);
 				katex.render(result.latex, document.getElementById("outputRender"), { throwOnError: false });
 				
-				// Compute decimal of the Radical object directly
-				const outputDecimal = radicalToDecimal(result.radical);
+				// Compute decimal of the result
+				let outputDecimal = 0;
+				if (result.expr instanceof AlgebraicExpr) {
+					outputDecimal = algebraicToDecimal(result.expr);
+				} else if (result.expr.coeffs) {
+					outputDecimal = radicalToDecimal(result.expr);
+				}
 				console.log("Output decimal:", outputDecimal);
 				document.getElementById("outputDecimal").textContent = '= ' + outputDecimal.toFixed(10);
 			} catch(e) {
@@ -159,10 +170,10 @@
 		
 		function evaluateSymbolicFull(latex) {
 			try {
-				const radical = parseLatex(latex);
+				const expr = parseLatex(latex);
 				return {
-					radical: radical,
-					latex: radical.toLatex()
+					expr: expr,
+					latex: expr.toLatex()
 				};
 			} catch(e) {
 				throw new Error(e.message);
@@ -186,6 +197,236 @@
 		}
 
 		// ========== EXACT ARITHMETIC SYSTEM ==========
+		// RationalFunction: represents numerator / denominator where both are polynomials
+		class RationalFunction {
+			constructor(numerator, denominator) {
+				this.numerator = numerator;   // AlgebraicExpr
+				this.denominator = denominator; // AlgebraicExpr
+			}
+			
+			static of(expr) {
+				if (expr instanceof RationalFunction) return expr;
+				if (expr instanceof AlgebraicExpr) {
+					return new RationalFunction(expr, AlgebraicExpr.ofNumber(1));
+				}
+				throw new Error('Cannot convert to RationalFunction');
+			}
+			
+			add(other) {
+				other = RationalFunction.of(other);
+				// a/b + c/d = (ad + bc) / (bd)
+				const newNum = this.numerator.mul(other.denominator).add(other.numerator.mul(this.denominator));
+				const newDen = this.denominator.mul(other.denominator);
+				return new RationalFunction(newNum, newDen);
+			}
+			
+			sub(other) {
+				other = RationalFunction.of(other);
+				// a/b - c/d = (ad - bc) / (bd)
+				const newNum = this.numerator.mul(other.denominator).sub(other.numerator.mul(this.denominator));
+				const newDen = this.denominator.mul(other.denominator);
+				return new RationalFunction(newNum, newDen);
+			}
+			
+			mul(other) {
+				other = RationalFunction.of(other);
+				const newNum = this.numerator.mul(other.numerator);
+				const newDen = this.denominator.mul(other.denominator);
+				return new RationalFunction(newNum, newDen);
+			}
+			
+			pow(n) {
+				let result = RationalFunction.of(AlgebraicExpr.ofNumber(1));
+				for (let i = 0; i < n; i++) {
+					result = result.mul(this);
+				}
+				return result;
+			}
+			
+			toLatex() {
+				const numLatex = this.numerator.toLatex();
+				const denLatex = this.denominator.toLatex();
+				
+				if (denLatex === '1') return numLatex;
+				return '\\frac{' + numLatex + '}{' + denLatex + '}';
+			}
+		}
+		
+		// AlgebraicExpr: represents polynomial expressions with variables like x, y, etc.
+		// Format: { varName: { exponent: Rational coefficient, ... }, ... }
+		// E.g., 2x^2 + 3x + 1 is stored as { x: { 2: 2, 1: 3, 0: 1 } }
+		class AlgebraicExpr {
+			constructor(terms = {}) {
+				this.terms = {}; // { varName: { exponent: Rational, ... }, ... }
+				for (let varName in terms) {
+					this.terms[varName] = {};
+					for (let exp in terms[varName]) {
+						if (terms[varName][exp] && terms[varName][exp].num !== 0) {
+							this.terms[varName][exp] = terms[varName][exp];
+						}
+					}
+					if (Object.keys(this.terms[varName]).length === 0) {
+						delete this.terms[varName];
+					}
+				}
+			}
+			
+			static ofRational(r) {
+				const expr = new AlgebraicExpr();
+				expr.terms.constant = { 0: r };
+				return expr;
+			}
+			
+			static ofNumber(n) {
+				if (typeof n === 'number') n = new Rational(n);
+				const expr = new AlgebraicExpr();
+				expr.terms.constant = { 0: n };
+				return expr;
+			}
+			
+			static ofVariable(varName, exponent = 1) {
+				const expr = new AlgebraicExpr();
+				expr.terms[varName] = {};
+				expr.terms[varName][exponent] = new Rational(1);
+				return expr;
+			}
+			
+			isConstant() {
+				return Object.keys(this.terms).length === 0;
+			}
+			
+			getConstant() {
+				if (this.terms.constant && this.terms.constant[0]) {
+					return this.terms.constant[0];
+				}
+				return new Rational(0);
+			}
+			
+			add(other) {
+				if (typeof other === 'number') other = AlgebraicExpr.ofNumber(other);
+				const result = new AlgebraicExpr(this.terms);
+				for (let varName in other.terms) {
+					if (!result.terms[varName]) {
+						result.terms[varName] = {};
+					}
+					for (let exp in other.terms[varName]) {
+						result.terms[varName][exp] = (result.terms[varName][exp] || new Rational(0)).add(other.terms[varName][exp]);
+						if (result.terms[varName][exp].num === 0) delete result.terms[varName][exp];
+					}
+					if (Object.keys(result.terms[varName]).length === 0) delete result.terms[varName];
+				}
+				return result;
+			}
+			
+			sub(other) {
+				if (typeof other === 'number') other = AlgebraicExpr.ofNumber(other);
+				const result = new AlgebraicExpr(this.terms);
+				for (let varName in other.terms) {
+					if (!result.terms[varName]) {
+						result.terms[varName] = {};
+					}
+					for (let exp in other.terms[varName]) {
+						result.terms[varName][exp] = (result.terms[varName][exp] || new Rational(0)).sub(other.terms[varName][exp]);
+						if (result.terms[varName][exp].num === 0) delete result.terms[varName][exp];
+					}
+					if (Object.keys(result.terms[varName]).length === 0) delete result.terms[varName];
+				}
+				return result;
+			}
+			
+			mul(other) {
+				if (typeof other === 'number') other = AlgebraicExpr.ofNumber(other);
+				if (!(other instanceof AlgebraicExpr)) throw new Error('Cannot multiply with non-AlgebraicExpr');
+				
+				const result = new AlgebraicExpr();
+				
+				// Handle case when multiplying x * 1
+				if (Object.keys(this.terms).length === 0) {
+					return new AlgebraicExpr(other.terms);
+				}
+				if (Object.keys(other.terms).length === 0) {
+					return new AlgebraicExpr(this.terms);
+				}
+				
+				for (let var1 in this.terms) {
+					for (let exp1 in this.terms[var1]) {
+						for (let var2 in other.terms) {
+							if (!result.terms[var2]) result.terms[var2] = {};
+							for (let exp2 in other.terms[var2]) {
+								let newExp, targetVar;
+								if (var1 === var2) {
+									newExp = parseInt(exp1) + parseInt(exp2);
+									targetVar = var2;
+								} else {
+									if (var1 === 'constant') {
+										newExp = parseInt(exp2);
+										targetVar = var2;
+									} else if (var2 === 'constant') {
+										newExp = parseInt(exp1);
+										targetVar = var1;
+										if (!result.terms[targetVar]) result.terms[targetVar] = {};
+									} else {
+										throw new Error('Multivariate expressions not supported');
+									}
+								}
+								
+								const coeff = this.terms[var1][exp1].mul(other.terms[var2][exp2]);
+								result.terms[targetVar][newExp] = (result.terms[targetVar][newExp] || new Rational(0)).add(coeff);
+								if (result.terms[targetVar][newExp].num === 0) delete result.terms[targetVar][newExp];
+							}
+						}
+					}
+				}
+				return result;
+			}
+			
+			div(other) {
+				throw new Error('Division of algebraic expressions not fully supported');
+			}
+			
+			pow(n) {
+				if (n === 0) return AlgebraicExpr.ofNumber(1);
+				if (n === 1) return new AlgebraicExpr(this.terms);
+				if (n < 0) return AlgebraicExpr.ofNumber(1).div(this.pow(-n));
+				let result = AlgebraicExpr.ofNumber(1);
+				for (let i = 0; i < n; i++) {
+					result = result.mul(this);
+				}
+				return result;
+			}
+			
+			toLatex() {
+				if (Object.keys(this.terms).length === 0) return '0';
+				const parts = [];
+				for (let varName in this.terms) {
+					const exps = Object.keys(this.terms[varName]).map(x => parseInt(x)).sort((a, b) => b - a);
+					for (let exp of exps) {
+						const coeff = this.terms[varName][exp];
+						const sign = coeff.num < 0 ? '-' : '+';
+						const absCoeff = Math.abs(coeff.num);
+						const coeffStr = coeff.den === 1 ? absCoeff.toString() : '\\frac{' + absCoeff + '}{' + coeff.den + '}';
+						
+						if (exp === 0) {
+							parts.push((parts.length === 0 ? (coeff.num < 0 ? '-' : '') : sign) + coeffStr);
+						} else if (exp === 1) {
+							if (absCoeff === 1 && coeff.den === 1) {
+								parts.push((parts.length === 0 ? (coeff.num < 0 ? '-' : '') : sign) + varName);
+							} else {
+								parts.push((parts.length === 0 ? (coeff.num < 0 ? '-' : '') : sign) + coeffStr + varName);
+							}
+						} else {
+							if (absCoeff === 1 && coeff.den === 1) {
+								parts.push((parts.length === 0 ? (coeff.num < 0 ? '-' : '') : sign) + varName + '^{' + exp + '}');
+							} else {
+								parts.push((parts.length === 0 ? (coeff.num < 0 ? '-' : '') : sign) + coeffStr + varName + '^{' + exp + '}');
+							}
+						}
+					}
+				}
+				return parts.join('');
+			}
+		}
+		
 		// Rational: exact fractions (numerator/denominator)
 		class Rational {
 			constructor(num, den = 1) {
@@ -422,13 +663,14 @@
 				pos++;
 				const right = parseTerm(latex, pos);
 				pos = right.pos;
-				left.value = op === '+' ? left.value.add(right.value) : left.value.sub(right.value);
+				left.value = op === '+' ? 
+					RationalFunction.of(left.value).add(RationalFunction.of(right.value)) :
+					RationalFunction.of(left.value).sub(RationalFunction.of(right.value));
 			}
 			
 			return { value: left.value, pos };
 		}
-		
-		function parseTerm(latex, pos) {
+				function parseTerm(latex, pos) {
 			let left = parseFactor(latex, pos);
 			pos = left.pos;
 			
@@ -439,13 +681,13 @@
 					else pos++;
 					const right = parseFactor(latex, pos);
 					pos = right.pos;
-					left.value = left.value.mul(right.value);
+					left.value = RationalFunction.of(left.value).mul(RationalFunction.of(right.value));
 				}
 				// Check for implicit multiplication (next char is \ or ( or digit)
 				else if (pos < latex.length && (latex[pos] === '\\' || latex[pos] === '(' || /\d/.test(latex[pos]))) {
 					const right = parseFactor(latex, pos);
 					pos = right.pos;
-					left.value = left.value.mul(right.value);
+					left.value = RationalFunction.of(left.value).mul(RationalFunction.of(right.value));
 				}
 				else {
 					break;
@@ -467,7 +709,7 @@
 			pos = base.pos;
 			
 			if (negate) {
-				base.value = base.value.mul(Radical.of(-1));
+				base.value = RationalFunction.of(base.value).mul(RationalFunction.of(AlgebraicExpr.ofNumber(-1)));
 			}
 			
 			if (pos < latex.length && latex[pos] === '^') {
@@ -495,8 +737,8 @@
 						const num = parseInt(fracMatch[1]);
 						const den = parseInt(fracMatch[2]);
 						if (den === 2) {
-							base.value = sqrtRadical(base.value);
-							if (num !== 1) base.value = base.value.pow(num);
+							// base.value = sqrtRadical(base.value); // TODO: implement for AlgebraicExpr
+							if (num !== 1) base.value = RationalFunction.of(base.value).pow(num);
 						} else {
 							throw new Error('Fractional exponents other than 1/2 not supported');
 						}
@@ -506,14 +748,14 @@
 				} else if (exp.includes('/')) {
 					const [num, den] = exp.split('/').map(x => parseInt(x));
 					if (den === 2) {
-						base.value = sqrtRadical(base.value);
-						if (num !== 1) base.value = base.value.pow(num);
+						// base.value = sqrtRadical(base.value); // TODO: implement for AlgebraicExpr
+						if (num !== 1) base.value = RationalFunction.of(base.value).pow(num);
 					} else {
 						throw new Error('Fractional exponents other than 1/2 not supported');
 					}
 				} else {
 					const n = parseInt(exp);
-					base.value = base.value.pow(n);
+					base.value = RationalFunction.of(base.value).pow(n);
 				}
 			}
 			
@@ -577,7 +819,14 @@
 					
 					const num = parseExpression(numPart, 0).value;
 					const den = parseExpression(denPart, 0).value;
-					return { value: num.div(den), pos: endPos };
+					
+					// Convert both to RationalFunction if needed
+					const numRat = RationalFunction.of(num);
+					const denRat = RationalFunction.of(den);
+					
+					// Divide: numRat / denRat = numRat * (1 / denRat) = numRat * (denRat.denominator / denRat.numerator)
+					const invDen = new RationalFunction(denRat.denominator, denRat.numerator);
+					return { value: numRat.mul(invDen), pos: endPos };
 				} else if (latex.substr(pos, 5) === '\\sqrt') {
 					let depth = 0, endPos = pos + 6;
 					let inner = '';
@@ -601,7 +850,14 @@
 			
 			const m = /^\d+/.exec(latex.substr(pos));
 			if (m) {
-				return { value: Radical.of(new Rational(parseInt(m[0]))), pos: pos + m[0].length };
+				return { value: AlgebraicExpr.ofNumber(parseInt(m[0])), pos: pos + m[0].length };
+			}
+			
+			// Handle variables like x, y, z
+			const varMatch = /^[a-z]/.exec(latex.substr(pos));
+			if (varMatch) {
+				const varName = varMatch[0];
+				return { value: AlgebraicExpr.ofVariable(varName), pos: pos + 1 };
 			}
 			
 			throw new Error('Cannot parse at: ' + latex.substr(pos, 20));
@@ -645,6 +901,31 @@
 				}
 			}
 			return sum;
+		}
+		
+		function algebraicToDecimal(expr) {
+			// For expressions with variables, we can't compute a single decimal value
+			// Return NaN or 0, or we could evaluate at specific variable values
+			// For now, return 0 for expressions with variables
+			if (expr instanceof RationalFunction) {
+				// Try to evaluate as decimal if possible
+				if (expr.denominator.isConstant()) {
+					const numDec = algebraicToDecimal(expr.numerator);
+					const denDec = algebraicToDecimal(expr.denominator);
+					if (denDec !== 0) return numDec / denDec;
+				}
+				return 0;
+			}
+			if (expr instanceof AlgebraicExpr) {
+				if (!expr.isConstant()) {
+					return 0; // Cannot evaluate expressions with variables
+				}
+				const constCoeff = expr.terms.constant && expr.terms.constant[0];
+				if (constCoeff) {
+					return constCoeff.num / constCoeff.den;
+				}
+			}
+			return 0;
 		}
 	</script>
 
