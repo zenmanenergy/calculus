@@ -171,6 +171,33 @@
 		function evaluateSymbolicFull(latex) {
 			try {
 				const expr = parseLatex(latex);
+				
+				// If the expression has no variables, try to convert back to Radical for simplification
+				if (expr instanceof RationalFunction && 
+					expr.numerator.isConstant() && 
+					expr.denominator.isConstant()) {
+					// Convert constant rational function to Radical
+					const num = expr.numerator.terms.constant && expr.numerator.terms.constant[0];
+					const den = expr.denominator.terms.constant && expr.denominator.terms.constant[0];
+					if (num && den) {
+						const radical = Radical.of(num.num).div(Radical.of(den.num));
+						return {
+							expr: radical,
+							latex: radical.toLatex()
+						};
+					}
+				} else if (expr instanceof AlgebraicExpr && expr.isConstant()) {
+					// Convert constant algebraic expression to Radical
+					const constCoeff = expr.terms.constant && expr.terms.constant[0];
+					if (constCoeff) {
+						const radical = Radical.of(constCoeff);
+						return {
+							expr: radical,
+							latex: radical.toLatex()
+						};
+					}
+				}
+				
 				return {
 					expr: expr,
 					latex: expr.toLatex()
@@ -208,6 +235,10 @@
 				if (expr instanceof RationalFunction) return expr;
 				if (expr instanceof AlgebraicExpr) {
 					return new RationalFunction(expr, AlgebraicExpr.ofNumber(1));
+				}
+				// Return the Radical as-is, don't convert it
+				if (expr instanceof Radical) {
+					return expr;
 				}
 				throw new Error('Cannot convert to RationalFunction');
 			}
@@ -292,7 +323,9 @@
 			}
 			
 			isConstant() {
-				return Object.keys(this.terms).length === 0;
+				// A constant expression has only a 'constant' term (no variables)
+				const keys = Object.keys(this.terms);
+				return keys.length === 0 || (keys.length === 1 && 'constant' in this.terms);
 			}
 			
 			getConstant() {
@@ -663,9 +696,21 @@
 				pos++;
 				const right = parseTerm(latex, pos);
 				pos = right.pos;
-				left.value = op === '+' ? 
-					RationalFunction.of(left.value).add(RationalFunction.of(right.value)) :
-					RationalFunction.of(left.value).sub(RationalFunction.of(right.value));
+				
+				// Handle mixing of Radicals and RationalFunctions
+				if (left.value instanceof Radical && right.value instanceof Radical) {
+					left.value = op === '+' ? left.value.add(right.value) : left.value.sub(right.value);
+				} else if (left.value instanceof Radical || right.value instanceof Radical) {
+					// Mixed Radical and RationalFunction - keep as is for now
+					// In practice this shouldn't happen often
+					left.value = op === '+' ? 
+						RationalFunction.of(left.value).add(RationalFunction.of(right.value)) :
+						RationalFunction.of(left.value).sub(RationalFunction.of(right.value));
+				} else {
+					left.value = op === '+' ? 
+						RationalFunction.of(left.value).add(RationalFunction.of(right.value)) :
+						RationalFunction.of(left.value).sub(RationalFunction.of(right.value));
+				}
 			}
 			
 			return { value: left.value, pos };
@@ -681,13 +726,23 @@
 					else pos++;
 					const right = parseFactor(latex, pos);
 					pos = right.pos;
-					left.value = RationalFunction.of(left.value).mul(RationalFunction.of(right.value));
+					// Handle Radical multiplication
+					if (left.value instanceof Radical && right.value instanceof Radical) {
+						left.value = left.value.mul(right.value);
+					} else {
+						left.value = RationalFunction.of(left.value).mul(RationalFunction.of(right.value));
+					}
 				}
 				// Check for implicit multiplication (next char is \ or ( or digit)
 				else if (pos < latex.length && (latex[pos] === '\\' || latex[pos] === '(' || /\d/.test(latex[pos]))) {
 					const right = parseFactor(latex, pos);
 					pos = right.pos;
-					left.value = RationalFunction.of(left.value).mul(RationalFunction.of(right.value));
+					// Handle Radical multiplication
+					if (left.value instanceof Radical && right.value instanceof Radical) {
+						left.value = left.value.mul(right.value);
+					} else {
+						left.value = RationalFunction.of(left.value).mul(RationalFunction.of(right.value));
+					}
 				}
 				else {
 					break;
@@ -737,8 +792,19 @@
 						const num = parseInt(fracMatch[1]);
 						const den = parseInt(fracMatch[2]);
 						if (den === 2) {
-							// base.value = sqrtRadical(base.value); // TODO: implement for AlgebraicExpr
-							if (num !== 1) base.value = RationalFunction.of(base.value).pow(num);
+							// For fractional exponents like 3/2, convert to Radical for proper simplification
+							// If base is AlgebraicExpr with only a constant, convert to Radical
+							if (base.value instanceof AlgebraicExpr && base.value.isConstant()) {
+								const constCoeff = base.value.terms.constant && base.value.terms.constant[0];
+								if (constCoeff) {
+									let radical = Radical.of(constCoeff);
+									radical = sqrtRadical(radical);
+									if (num !== 1) radical = radical.pow(num);
+									base.value = radical;
+								}
+							} else if (num !== 1) {
+								base.value = RationalFunction.of(base.value).pow(num);
+							}
 						} else {
 							throw new Error('Fractional exponents other than 1/2 not supported');
 						}
@@ -748,8 +814,18 @@
 				} else if (exp.includes('/')) {
 					const [num, den] = exp.split('/').map(x => parseInt(x));
 					if (den === 2) {
-						// base.value = sqrtRadical(base.value); // TODO: implement for AlgebraicExpr
-						if (num !== 1) base.value = RationalFunction.of(base.value).pow(num);
+						// For fractional exponents like 3/2, convert to Radical for proper simplification
+						if (base.value instanceof AlgebraicExpr && base.value.isConstant()) {
+							const constCoeff = base.value.terms.constant && base.value.terms.constant[0];
+							if (constCoeff) {
+								let radical = Radical.of(constCoeff);
+								radical = sqrtRadical(radical);
+								if (num !== 1) radical = radical.pow(num);
+								base.value = radical;
+							}
+						} else if (num !== 1) {
+							base.value = RationalFunction.of(base.value).pow(num);
+						}
 					} else {
 						throw new Error('Fractional exponents other than 1/2 not supported');
 					}
@@ -839,7 +915,27 @@
 					}
 					inner = inner.slice(0, -1);
 					const rad = parseExpression(inner, 0).value;
-					return { value: sqrtRadical(rad), pos: endPos };
+					
+					// Convert to Radical if it's a constant expression
+					let radicand = rad;
+					if (rad instanceof RationalFunction) {
+						if (rad.numerator.isConstant() && rad.denominator.isConstant()) {
+							const num = rad.numerator.getConstant();
+							const den = rad.denominator.getConstant();
+							radicand = new Radical({ 1: new Rational(num.num * den.den, num.den * den.num) });
+						} else {
+							throw new Error('Cannot take square root of non-constant expression');
+						}
+					} else if (rad instanceof AlgebraicExpr) {
+						if (rad.isConstant()) {
+							const constCoeff = rad.getConstant();
+							radicand = new Radical({ 1: constCoeff });
+						} else {
+							throw new Error('Cannot take square root of expression with variables');
+						}
+					}
+					
+					return { value: sqrtRadical(radicand), pos: endPos };
 				}
 			}
 			
